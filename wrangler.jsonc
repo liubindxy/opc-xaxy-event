@@ -3,13 +3,19 @@
   "name": "opc-xaxy-event",
   "main": "src/worker.mjs",
   "compatibility_date": "2026-10-13",
-  "assets": { "directory": "./public", "binding": "ASSETS", "run_worker_first": true },
-  "d1_databases": [{
-    "binding": "DB",
-    "database_name": "opc-xaxy-event",
-    "database_id": "REPLACE_WITH_D1_DATABASE_ID",
-    "migrations_dir": "migrations"
-  }],
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": true
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "opc-xaxy-event",
+      "database_id": "7a138197-08f7-4f43-b78b-09eaf239f997",
+      "migrations_dir": "migrations"
+    }
+  ],
   "vars": {
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
