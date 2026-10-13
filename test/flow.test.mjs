@@ -1,10 +1,30 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import {readFile} from 'node:fs/promises';
 import worker,{toCSV,hash} from '../src/worker.mjs';
 import {verifyAccess} from '../src/auth.mjs';
 import {database} from '../scripts/d1-adapter.mjs';
 function setup(){const DB=database();DB.sql.exec("UPDATE events SET registration_open=1,capacity=1");return{DB,LOCAL_PREVIEW:true,ASSETS:{fetch:async()=>new Response('asset')}};}
 function req(path,method='GET',data,extra={}){return new Request('http://127.0.0.1'+path,{method,headers:{Origin:'http://127.0.0.1','Content-Type':'application/json',...extra},...(data!==undefined?{body:JSON.stringify(data)}:{})});}
+test('explicit HTML asset rewrites do not redirect back to the public route',async()=>{
+  const config=JSON.parse(await readFile(new URL('../wrangler.jsonc',import.meta.url),'utf8'));
+  assert.equal(config.assets.html_handling,'none');
+  assert.equal(config.assets.run_worker_first,true);
+  const env=setup();
+  env.ASSETS.fetch=async request=>{
+    const path=new URL(request.url).pathname;
+    if(config.assets.html_handling!=='none' && path.endsWith('.html'))return Response.redirect(new URL(path.slice(0,-5),request.url),307);
+    return new Response(path,{headers:{'Content-Type':'text/html'}});
+  };
+  for(const path of ['/admin','/status']){
+    const response=await worker.fetch(req(path),env);
+    assert.equal(response.status,200);
+    assert.equal(response.headers.get('Location'),null);
+    assert.equal(await response.text(),path+'.html');
+  }
+  delete env.LOCAL_PREVIEW;
+  assert.equal((await worker.fetch(req('/admin'),env)).status,401);
+});
 const input={name:'测试开发者',contact:'test@example.com',city:'雄安',role:'独立开发者',project:'AI应用',project_url:'https://example.com',focus:'产品商业变现',needs:'首批用户',offers:'开发经验',laptop:true,full_attendance:true,share_project:false,consent:true,source:'poster'};
 async function apply(env,contact=input.contact){const response=await worker.fetch(req('/api/applications','POST',{...input,contact}),env);assert.equal(response.status,201);return response.json();}
 test('application > approval > confirmation > check-in, private tokens and capacity',async()=>{
