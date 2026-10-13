@@ -1,0 +1,10 @@
+import {createServer} from 'node:http';
+import {readFile} from 'node:fs/promises';
+import {resolve,extname,sep} from 'node:path';
+import {database} from './d1-adapter.mjs';
+import worker from '../src/worker.mjs';
+const root=resolve(new URL('../public',import.meta.url).pathname.replace(/^\/([A-Za-z]:)/,'$1'));
+const DB=database();DB.sql.exec("UPDATE events SET registration_open=1");
+const env={DB,LOCAL_PREVIEW:true,ASSETS:{async fetch(request){try{const url=new URL(request.url);const file=resolve(root,'.'+decodeURIComponent(url.pathname==='/'?'/index.html':url.pathname));if(!file.startsWith(root+sep))return new Response('Not found',{status:404});const content=await readFile(file);return new Response(content,{headers:{'Content-Type':({'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8'})[extname(file)]||'application/octet-stream'}});}catch{return new Response('Not found',{status:404});}}}};
+const server=createServer(async(req,res)=>{try{const bytes=[];for await(const chunk of req)bytes.push(chunk);const request=new Request(`http://127.0.0.1:${server.address().port}${req.url}`,{method:req.method,headers:req.headers,...(!['GET','HEAD'].includes(req.method)?{body:Buffer.concat(bytes)}:{})});const response=await worker.fetch(request,env);res.writeHead(response.status,Object.fromEntries(response.headers));res.end(Buffer.from(await response.arrayBuffer()));}catch{res.writeHead(500);res.end('Preview error');}});
+server.listen(Number(process.env.PORT||8787),'127.0.0.1',()=>console.log(`Local preview: http://127.0.0.1:${server.address().port}\nLocal demo only. In-memory data resets when stopped.`));

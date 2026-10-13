@@ -1,0 +1,7 @@
+import{api,labels,message,copy,showPreview}from'./shared.js';
+const output=document.querySelector('#message'),secret=location.hash.slice(1),headers={'X-Application-Token':secret};
+async function load(){try{const[row,event]=await Promise.all([api('/api/status',{headers}),api('/api/event')]);document.querySelector('#result').hidden=false;document.querySelector('#applicant').textContent=`${row.name} · ${row.id}`;document.querySelector('#status').textContent=row.checked_in?'已签到':row.confirmed?'已确认出席':labels[row.status];document.querySelector('#description').textContent={pending:'申请已进入审核队列，请等待主办方确认。',approved:row.confirmed?'期待与你现场交流。时间和地点以主办方最终通知为准。':'你已获得参与名额，请点击下方按钮确认出席。',waitlisted:'你已进入候补名单。名额释放后，主办方将继续审核。',rejected:'本次未能安排参与名额，感谢关注，期待在后续活动中见面。'}[row.status];document.querySelector('#event-date').textContent=event.date_label;document.querySelector('#event-venue').textContent=event.venue;document.querySelector('#confirm').hidden=row.status!=='approved'||!!row.confirmed;message(output,'');return event;}catch(e){message(output,e.message,true);}}
+const event=await load();if(event)showPreview(event);
+document.querySelector('#refresh').onclick=load;
+document.querySelector('#confirm').onclick=async e=>{e.currentTarget.disabled=true;try{await api('/api/confirm',{method:'POST',headers,body:'{}'});await load();}catch(error){message(output,error.message,true);}finally{e.target.disabled=false;}};
+document.querySelector('#copy').onclick=async()=>{try{await copy(location.href);message(output,'查询链接已复制。');}catch(e){message(output,e.message,true);}};
