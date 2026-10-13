@@ -150,6 +150,7 @@ async function route(request, env) {
   if (path.startsWith('/api/')) fail(404,'接口不存在');
   if (path==='/admin.html') fail(404,'请从 /admin 访问后台');
   if (path==='/status') return env.ASSETS.fetch(new Request(new URL('/status.html',url),request));
+  if (path==='/') return env.ASSETS.fetch(new Request(new URL('/index.html',url),request));
   return env.ASSETS.fetch(request);
 }
 export default {async fetch(request,env) {

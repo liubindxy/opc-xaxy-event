@@ -16,14 +16,15 @@ test('explicit HTML asset rewrites do not redirect back to the public route',asy
     if(config.assets.html_handling!=='none' && path.endsWith('.html'))return Response.redirect(new URL(path.slice(0,-5),request.url),307);
     return new Response(path,{headers:{'Content-Type':'text/html'}});
   };
-  for(const path of ['/admin','/status']){
+  for(const [path,asset] of [['/admin','/admin.html'],['/status','/status.html'],['/','/index.html']]){
     const response=await worker.fetch(req(path),env);
     assert.equal(response.status,200);
     assert.equal(response.headers.get('Location'),null);
-    assert.equal(await response.text(),path+'.html');
+    assert.equal(await response.text(),asset);
   }
   delete env.LOCAL_PREVIEW;
   assert.equal((await worker.fetch(req('/admin'),env)).status,401);
+  assert.equal((await worker.fetch(req('/'),env)).status,200);
 });
 const input={name:'测试开发者',contact:'test@example.com',city:'雄安',role:'独立开发者',project:'AI应用',project_url:'https://example.com',focus:'产品商业变现',needs:'首批用户',offers:'开发经验',laptop:true,full_attendance:true,share_project:false,consent:true,source:'poster'};
 async function apply(env,contact=input.contact){const response=await worker.fetch(req('/api/applications','POST',{...input,contact}),env);assert.equal(response.status,201);return response.json();}
