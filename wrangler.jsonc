@@ -17,8 +17,8 @@
     }
   ],
   "vars": {
-    "ACCESS_TEAM_DOMAIN": "",
-    "ACCESS_AUD": "",
+    "ACCESS_TEAM_DOMAIN": "broad-hall-93c1.cloudflareaccess.com",
+    "ACCESS_AUD": "ef93e028991d7c7bbf0e66d0e75a706e2c5096ca51a685c2ab36ec2ccd53e0e8",
     "TURNSTILE_SITE_KEY": ""
   }
 }
