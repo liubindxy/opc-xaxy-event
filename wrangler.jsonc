@@ -19,7 +19,6 @@
   "vars": {
     "ACCESS_TEAM_DOMAIN": "",
     "ACCESS_AUD": "",
-    "ADMIN_EMAILS": "",
     "TURNSTILE_SITE_KEY": ""
   }
 }
